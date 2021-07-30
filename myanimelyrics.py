@@ -1,4 +1,3 @@
-# coding: utf-8
 from urllib.parse import urlparse
 from scrapingbee import ScrapingBeeClient
 import googlesearch
@@ -48,13 +47,13 @@ def search_lyrics(query, lang="jp", show_title=False):
         song_idx = 1
 
     url = get_lyrics_url(query)
-    print(url)
+    # print(url)
     soup = get_lyrics_soup(url)
 
     center_box = soup.find("div", {"class": "centerbox"})
 
     lyrics_table = center_box.find("table")
-    print(lyrics_table)
+    # print(lyrics_table)
     lyrics = ""
 
     if lyrics_table is None:
@@ -64,7 +63,7 @@ def search_lyrics(query, lang="jp", show_title=False):
         lyrics = center_box.find("span", {"class": "lyrics"}).get_text()
     else:
         lyrics_divs = lyrics_table.find_all("td", {"class": class_name})
-        print(lyrics_divs)
+        # print(lyrics_divs)
         for div in lyrics_divs:
             lyrics += div.get_text()
 
@@ -72,7 +71,7 @@ def search_lyrics(query, lang="jp", show_title=False):
     # lyrics = lyrics.replace("\xa0", " ").strip()
 
     # remove whitespaces from each line
-    print(lyrics)
+    # print(lyrics)
     # stripped_lines = [line.strip() for line in lyrics.splitlines()]
     # lyrics = "\n".join(stripped_lines)
 
@@ -107,14 +106,6 @@ def get_song_info(soup):
 
 
 def get_lyrics_soup(url):
-    """
-    Get a BeautifulSoup4 representation of a url
-
-    :param str url: URL to read
-
-    :rtype: BeautifulSoup
-    :return: BeautifulSoup4 object of the loaded url
-    """
     client = ScrapingBeeClient(api_key='40VNWM7NYZH6HVMAJW43OXXW92FK5I80Q4QJXBHWG6832SJT0ZV3BH60L246FKPGXFGNXYCL75PUQYWA')
     response = client.get(
         url,
@@ -127,9 +118,8 @@ def get_lyrics_soup(url):
     soup = BeautifulSoup(html_text, "lxml")
 
     # convert all br into newlines
-    # for line_break in soup.find_all("br"):
-    #     line_break.replace_with("\n")
-
+    for line_break in soup.find_all("br"):
+        line_break.replace_with("\n")
 
     # remove all unwanted tags in the page
     tags_to_remove = ["dt", "sup"]
@@ -138,24 +128,13 @@ def get_lyrics_soup(url):
         for tag in soup.find_all(tag_name):
             tag.decompose()
     
-    # print(soup)
     return soup
 
-
 def get_lyrics_url(query):
-    """
-    Finds a url in AnimeLyrics website for a lyric
-
-    :param str query: Query string.
-
-    :rtype: str
-    :return: String of the url page for the given query
-    """
     for url in googlesearch.search("site:{} {}".format(__BASE_URL__, query), stop=10):
         # return the first page with .htm in the url as it contains lyrics
         if str(url).endswith(".htm"):
             print(url)
             return url
 
-    # return none if query cannot find any pages
     raise NoLyricsFound("Lyrics not found")

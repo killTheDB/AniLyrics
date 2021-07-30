@@ -12,9 +12,25 @@
         <input type="text" name="searchbar" id="searchbar" placeholder="Enter song name to search">
         <input type="submit" value="Search" id="searchit">
     </form></div>
+    <h5><center><em>Scrollabe lyrics if any</em></center></h5>
     <div id="lyricscontainer">
-        <div id="japlang">{{ ly_jp }}</div>  
-        <div id="englang">{{ ly_en }}</div>
+        <div id="japlang">
+            <center><b>Romaji(Japanese)</b></center><br><br>
+            <center>
+            {% autoescape false %}
+                {{ ly_jp }}
+            {% endautoescape %}
+            </center>
+        </div>  
+        <div id="englang">
+            <center><b>Translation(English)</b></center><br><br>
+            <center>
+            {% autoescape false %}
+                {{ ly_en }}
+            {% endautoescape %}
+            </center>
+        </div>
+        <iframe src="{{ firstvideo_id }}">{{ firstvideo_id }}</iframe>
     </div>
 </div>
 {% endblock %}
