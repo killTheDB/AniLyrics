@@ -7,17 +7,18 @@ body{
     background-size: cover;
     background-repeat: no-repeat;
     width: 100vw;
-    height: 130vh;
+    height: 1100px;
     background-size: 100% 100%;
 } 
 
 .container {
     opacity: 1.0;
+    height: 1100px;
 }
 
 .content {
     width: 100%;
-    height: 100%;
+    height: 1100px;
     
 }
 
@@ -112,10 +113,8 @@ input#searchbar {
   scrollbar-width: none;  /* Firefox */
 }
 
-/* @media screen and  {
-    
-} */
-
-.html5-video-container {
-    visibility: hidden;
+iframe {
+    height: 240px;
+    width: 420px;
+    margin-top: 680px;
 }
