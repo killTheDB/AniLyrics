@@ -5,15 +5,15 @@
 {% endblock %}
 
 {% block body %}
-<div class="content">
     <h1 class="title">AniLyrics</h1>
     <div style="text-align:center" id="parent">
-    <form action="/" method="POST" id="form_login">
-        <input type="text" name="searchbar" id="searchbar" placeholder="Enter song name to search">
-        <input type="submit" value="Search" id="searchit">
-    </form></div>
-    <h5><center><em>Scrollabe lyrics if any</em></center></h5>
-    <div id="lyricscontainer">
+        <form action="/" method="POST" id="form_login">
+            <input type="text" name="searchbar" id="searchbar" placeholder="Enter song name to search">
+            <input type="submit" value="Search" id="searchit">
+        </form>
+    </div>
+    <h5 style="margin-top: 25px;"><center><em>Scrollabe lyrics if any</em></center></h5>
+    <!-- <div id="lyricscontainer">
         <div id="japlang">
             <center><b>Romaji(Japanese)</b></center><br><br>
             <center>
@@ -29,9 +29,25 @@
                 {{ ly_en }}
             {% endautoescape %}
             </center>
+        </div> -->
+    <div class="row justify-content-around">
+        <div class="col-md-5 jp" id="japlang">
+            <center><b>Romaji(Japanese)</b></center><br><br>
+            <center>
+            {% autoescape false %}
+                {{ ly_jp }}
+            {% endautoescape %}
+            </center>
+        </div>
+        <div class="col-md-5" id="englang">
+            <center><b>Translation(English)</b></center><br><br>
+            <center>
+            {% autoescape false %}
+                {{ ly_en }}
+            {% endautoescape %}
+            </center>
         </div>
     </div>
     <center><iframe src="{{ firstvideo_id }}"></iframe></center>
-</div>
 
 {% endblock %}
