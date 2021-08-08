@@ -1,10 +1,10 @@
 from urllib.parse import urlparse
-from scrapingbee import ScrapingBeeClient
 import googlesearch
 import requests
 from bs4 import BeautifulSoup
+import re
 
-__BASE_URL__ = "www.animelyrics.com"
+__BASE_URL__ = "www.animesonglyrics.com"
 
 
 class NoLyricsFound(Exception):
@@ -26,115 +26,61 @@ class InvalidLanguage(ValueError):
 
 
 def search_lyrics(query, lang="jp", show_title=False):
-    """
-    Search the given query string inside AnimeLyrics.
+    url = get_lyrics_url(query)
+    print(url)
 
-    :param str query: Query string. 
-    :param str lang: Language to search in (jp, en)
-    :param bool show_title: Show title at the top of the string
-
-    :rtype: str
-    :return: String of lyrics in given language
-    """
-    if lang != "en" and lang != "jp":
-        raise InvalidLanguage("Unsupported language type")
+    soup = get_lyrics_soup(url)
+    # print(soup)
 
     if lang == "jp":
-        class_name = "romaji"
-        song_idx = 0
+        lyrics_content = soup.find("div", attrs = {'id':'tab1'})
     elif lang == "en":
-        class_name = "translation"
-        song_idx = 1
-
-    url = get_lyrics_url(query)
-    # print(url)
-    soup = get_lyrics_soup(url)
-
-    center_box = soup.find("div", {"class": "centerbox"})
-
-    lyrics_table = center_box.find("table")
-    # print(lyrics_table)
-    lyrics = ""
-
-    if lyrics_table is None:
-        if lang == "en":
-            raise MissingTranslatedLyrics("No translated lyrics found")
-
-        lyrics = center_box.find("span", {"class": "lyrics"}).get_text()
+        lyrics_content = soup.find("div", attrs = {'id':'tab2'})
     else:
-        lyrics_divs = lyrics_table.find_all("td", {"class": class_name})
-        # print(lyrics_divs)
-        for div in lyrics_divs:
-            lyrics += div.get_text()
+        raise InvalidLanguage("Unsupported language type")
+    s=""
+    for line in lyrics_content.get_text():
+        s=s+line
 
-    # remove trailing spaces and weird space
-    # lyrics = lyrics.replace("\xa0", " ").strip()
-
-    # remove whitespaces from each line
+    lyrics = re.sub(' +', ' ', s)
     # print(lyrics)
-    # stripped_lines = [line.strip() for line in lyrics.splitlines()]
-    # lyrics = "\n".join(stripped_lines)
 
-    if show_title:
-        song_name, anime_name = get_song_info(soup)
+    song_title = get_song_info(soup)
 
-        # song name might be english
-        # set index to japanese name if english name not found
-        if lang == "en" and len(song_name) == 1:
-            song_idx = 0
-
-        return "{} - {}\n\n{}".format(song_name[song_idx], anime_name, lyrics)
-    else:
-        return lyrics
+    return lyrics,song_title
 
 
 def get_song_info(soup):
-    """
-    Retrieve the song name (english / japanese) and anime name
-
-    :param BeautifulSoup soup: BeautifulSoup4 object of lyrics url
-
-    :rtype [str, str]
-    :return Tuple of song and anime name
-    """
-    crumbs = soup.find("ul", {"id": "crumbs"})
-    crumbs_list = crumbs.find_all("li")
-    song_name = [name.strip() for name in crumbs_list[-1].get_text().split("-")]
-    anime_name = crumbs_list[-2].get_text()
-
-    return (song_name, anime_name)
+    title = soup.find("a", {"class": "SngLnk2"})
+    return title.get_text()
 
 
 def get_lyrics_soup(url):
-    client = ScrapingBeeClient(api_key='40VNWM7NYZH6HVMAJW43OXXW92FK5I80Q4QJXBHWG6832SJT0ZV3BH60L246FKPGXFGNXYCL75PUQYWA')
-    response = client.get(
-        url,
-        params={ 
-            'render_js': 'false',  
-        },         
-    )
-    # html_text = requests.get(url).text
-    html_text = response.content
+    html_text = requests.get(url).text
     soup = BeautifulSoup(html_text, "lxml")
 
     # convert all br into newlines
     for line_break in soup.find_all("br"):
         line_break.replace_with("\n")
 
-    # remove all unwanted tags in the page
-    tags_to_remove = ["dt", "sup"]
+    # # remove all unwanted tags in the page
+    for div in soup.find_all("div", {'class':'correct'}): 
+        div.decompose()
+
+    tags_to_remove = ["dt", "sup","style","script","input","form","button","label","span"]
 
     for tag_name in tags_to_remove:
         for tag in soup.find_all(tag_name):
             tag.decompose()
-    
     return soup
+
 
 def get_lyrics_url(query):
     for url in googlesearch.search("site:{} {}".format(__BASE_URL__, query), stop=10):
         # return the first page with .htm in the url as it contains lyrics
-        if str(url).endswith(".htm"):
-            print(url)
-            return url
+        # if str(url).endswith(".htm"):
+        #     return url
+        return url
 
-    raise NoLyricsFound("Lyrics not found")
+    # return none if query cannot find any pages
+    raise NoLyricsFound
